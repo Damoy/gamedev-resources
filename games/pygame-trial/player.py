@@ -1,13 +1,20 @@
 import pygame
-from texture import Texture
-from map import TILE_SIZE
+from sprites import GameSprite, GameSpriteGroup, subImage
 
-class Player:
-    def __init__(self, screen: pygame.Surface, textures: Texture, x, y):
-        self.x = x
-        self.y = y
+from map import TILE_SIZE
+from movement import Direction
+
+
+class Player(GameSprite):
+    def __init__(self, screen: pygame.Surface, image: pygame.image, x, y, group: GameSpriteGroup):
+        GameSprite.__init__(self, subImage(image, 0, 1, 14, 15), group)
         self.screen = screen
-        self.textures = textures
+        self.rect.x = x
+        self.rect.y = y
+        self.dv = 1
+        self.isMoving = False
+        self.pxMoveCount = 0
+        self.direction = Direction.NONE
 
     def update(self):
         return self.handleInput()
@@ -21,17 +28,52 @@ class Player:
 
         if keys[pygame.K_ESCAPE]:
             return False
-        if keys[pygame.K_LEFT]:
-            self.x -= TILE_SIZE
-        if keys[pygame.K_RIGHT]:
-            self.x += TILE_SIZE
-        if keys[pygame.K_UP]:
-            self.y -= TILE_SIZE
-        if keys[pygame.K_DOWN]:
-            self.y += TILE_SIZE
 
+        self.move()
         return True
 
-    def render(self):
-        self.textures.render(self.screen, self.x, self.y, (1, 17, 14, 14))
-        # pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, self.w, self.h))
+    def move(self):
+        if self.isMoving and self.direction is not Direction.NONE:
+            self.updateMove()
+        else:
+            keys = pygame.key.get_pressed()
+
+            if keys[pygame.K_LEFT]:
+                self.rect.x -= self.dv
+                self.direction = Direction.LEFT
+            if keys[pygame.K_RIGHT]:
+                self.rect.x += self.dv
+                self.direction = Direction.RIGHT
+            if keys[pygame.K_DOWN]:
+                self.rect.y += self.dv
+                self.direction = Direction.DOWN
+            if keys[pygame.K_UP]:
+                self.rect.y -= self.dv
+                self.direction = Direction.UP
+            if self.movingKeysActivated(keys):
+                self.isMoving = True
+                self.pxMoveCount += self.dv
+
+    def movingKeysActivated(self, keys):
+        return keys[pygame.K_LEFT] or keys[pygame.K_RIGHT] \
+            or keys[pygame.K_DOWN] or keys[pygame.K_UP]
+
+    def updateMove(self):
+        if self.direction == Direction.DOWN:
+            self.rect.y += self.dv
+        elif self.direction == Direction.LEFT:
+            self.rect.x -= self.dv
+        elif self.direction == Direction.RIGHT:
+            self.rect.x += self.dv
+        elif self.direction == Direction.UP:
+            self.rect.y -= self.dv
+
+        self.pxMoveCount += self.dv
+
+        if self.pxMoveCount >= TILE_SIZE:
+            self.endMove()
+
+    def endMove(self):
+        self.isMoving = False
+        self.pxMoveCount = 0
+        self.direction = Direction.NONE

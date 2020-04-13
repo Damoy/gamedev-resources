@@ -1,33 +1,20 @@
-from enum import Enum
-
+import pygame
 from window import Window
-from texture import Texture
+import sprites
 
 TILE_SIZE = 16
 
-class Direction(Enum):
-    UP = 0
-    RIGHT = 1
-    DOWN = 2
-    LEFT = 3
 
 class Map:
-    def __init__(self, window: Window, textures: Texture):
+    def __init__(self, window: Window, textures: pygame.image, spriteBank: dict):
         self.window = window
         self.textures = textures
         self.rows = window.height // TILE_SIZE
         self.cols = window.width // TILE_SIZE
+        self.tilesBank = spriteBank['tiles']
 
     def update(self):
         pass
 
     def render(self):
-        for row in range(self.rows):
-            for col in range(self.cols):
-                x, y = (col * TILE_SIZE, row * TILE_SIZE)
-                cropData = (0, 0, TILE_SIZE, TILE_SIZE)
-                self.textures.render(self.window.get(), x, y, cropData)
-                # pygame.draw.aaline(self.window.get(), (0, 0, 0), (x, y), (x + TILE_SIZE, y))
-                # pygame.draw.aaline(self.window.get(), (0, 0, 0), (x, y), (x, y + TILE_SIZE))
-                # pygame.draw.aaline(self.window.get(), (0, 0, 0), (x + TILE_SIZE, y), (x + TILE_SIZE, y + TILE_SIZE))
-                # pygame.draw.aaline(self.window.get(), (0, 0, 0), (x, y + TILE_SIZE), (x + TILE_SIZE, y + TILE_SIZE))
+        self.window.get().fill(self.tilesBank['grass'].get_at((0, 0)))
