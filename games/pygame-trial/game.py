@@ -19,29 +19,30 @@ class Game:
         self.spriteBank = sprites.loadSpriteBank(self.textures)
         self.map = Map(self.window, self.textures, self.spriteBank)
         self.allSprites = sprites.GameSpriteGroup()
-        self.player = Player(self.window.get(), self.textures, 100, 100, self.allSprites)
+        self.player = Player(self.window.get(), self.textures, 100, 100, self.allSprites, self.spriteBank)
 
     def gameLoop(self):
         self.isRunning = True
         while self.isRunning:
-            self.clock.tick(60)
-            if not self.update():
-                self.isRunning = False
+            self.clock.tick(120)
+            self.update()
+            if not self.isRunning:
                 break
             self.render()
         pygame.quit()
 
     def update(self):
-        if not self.player.update():
-            return False
-        return True
+        # self.allSprites.update()
+        self.player.update()
+        if self.player.userEnded:
+            self.isRunning = False
 
     def render(self):
         self.screen.fill((255, 255, 255))
         self.map.render()
-        self.allSprites.clear(self.screen, self.screen)
-        self.allSprites.update()
+        # self.allSprites.clear(self.screen, self.screen)
         self.allSprites.draw(self.screen)
+        # self.screen.blit(self.player.image, )
         self.window.render()
 
 def main():

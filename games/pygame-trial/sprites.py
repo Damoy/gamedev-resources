@@ -1,6 +1,8 @@
 import pygame
 from pygame.sprite import Sprite, Group
 from pygame.rect import Rect
+from movement import Direction
+from gameTime import TickCounter
 
 
 def load(path):
@@ -17,6 +19,54 @@ class GameSprite(Sprite):
         Sprite.__init__(self, group)
         self.image = image
         self.rect = self.image.get_rect()
+
+
+class DirectedAnimation:
+    def __init__(self, tickCap, loop):
+        self.spritesheet = {}
+        self.framePtrs = {}
+        self.tickCap = tickCap
+        self.loop = loop
+        self.currentDirection = None
+        self.currentFrame = None
+
+    def setDirection(self, direction: Direction):
+        self.framePtrs[self.currentDirection] = 0
+        self.currentDirection = direction
+        self.currentFrame = self.spritesheet[self.currentDirection][self.framePtrs[self.currentDirection]]
+
+    def update(self):
+        framePtr = self.framePtrs[self.currentDirection]
+        framePtr += 1
+        if framePtr >= len(self.spritesheet[self.currentDirection]):
+            framePtr = 0
+        self.framePtrs[self.currentDirection] = framePtr
+        self.currentFrame = self.spritesheet[self.currentDirection][framePtr]
+
+    def getCurrentFrame(self):
+        return self.currentFrame
+
+    def addFrame(self, direction: Direction, image: pygame.image):
+        if direction in self.spritesheet:
+            self.spritesheet[direction].append(image)
+        else:
+            self.spritesheet[direction] = [image]
+            self.framePtrs[direction] = 0
+        return self
+
+
+def loadPlayerAnimation(spriteBank: dict):
+    playerBank = spriteBank['entities']['characters']['player']
+    playerAnimation = DirectedAnimation(60, True)
+    for playerUpFrame in playerBank['up']:
+        playerAnimation.addFrame(Direction.UP, playerUpFrame)
+    for playerDownFrame in playerBank['down']:
+        playerAnimation.addFrame(Direction.DOWN, playerDownFrame)
+    for playerLeftFrame in playerBank['left']:
+        playerAnimation.addFrame(Direction.LEFT, playerLeftFrame)
+    for playerRightFrame in playerBank['right']:
+        playerAnimation.addFrame(Direction.RIGHT, playerRightFrame)
+    return playerAnimation
 
 def subImage(image: pygame.image, x, y, w, h):
     return image.subsurface(Rect(x, y, w, h)).convert()
@@ -63,9 +113,36 @@ def loadSpriteBank(textures: pygame.image):
     grassBlocks.append(subImage(textures, 257, 55, 24, 21))
     tilesBank['grassBlock'] = grassBlocks
 
-    # TODO
     entitiesBank = {}
+    entitiesBank['potion'] = subImage(textures, 0, 51, 9, 13)
+    entitiesBank['seed'] = subImage(textures, 10, 13, 7, 11)
+    entitiesBank['apple'] = subImage(textures, 18, 53, 10, 11)
+    entitiesBank['scroll'] = subImage(textures, 29, 51, 12, 13)
+    entitiesBank['heart'] = subImage(textures, 42, 51, 15, 13)
+
+    characters = {}
+    playerBank = {}
+    playerDownFrames = []
+    playerDownFrames.append(subImage(textures, 0, 1, 14, 15))
+    playerDownFrames.append(subImage(textures, 18, 1, 14, 15))
+    playerUpFrames = []
+    playerUpFrames.append(subImage(textures, 34, 1, 14, 15))
+    playerUpFrames.append(subImage(textures, 48, 1, 14, 15))
+    playerRightFrames = []
+    playerRightFrames.append(subImage(textures, 65, 1, 14, 15))
+    playerRightFrames.append(subImage(textures, 82, 1, 14, 15))
+    playerLeftFrames = []
+    playerLeftFrames.append(pygame.transform.flip(playerRightFrames[0], True, False).convert())
+    playerLeftFrames.append(pygame.transform.flip(playerRightFrames[1], True, False).convert())
+
+    playerBank['down'] = playerDownFrames
+    playerBank['up'] = playerUpFrames
+    playerBank['left'] = playerLeftFrames
+    playerBank['right'] = playerRightFrames
+    characters['player'] = playerBank
+    entitiesBank['characters'] = characters
 
     spriteBank['tiles'] = tilesBank
     spriteBank['entities'] = entitiesBank
     return spriteBank
+

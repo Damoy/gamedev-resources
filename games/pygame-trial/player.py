@@ -1,12 +1,13 @@
 import pygame
-from sprites import GameSprite, GameSpriteGroup, subImage
+from sprites import GameSprite, GameSpriteGroup, subImage, loadPlayerAnimation
 
 from map import TILE_SIZE
 from movement import Direction
 
 
 class Player(GameSprite):
-    def __init__(self, screen: pygame.Surface, image: pygame.image, x, y, group: GameSpriteGroup):
+    def __init__(self, screen: pygame.Surface, image: pygame.image, x, y, group: GameSpriteGroup,
+                 spriteBank: dict):
         GameSprite.__init__(self, subImage(image, 0, 1, 14, 15), group)
         self.screen = screen
         self.rect.x = x
@@ -15,29 +16,33 @@ class Player(GameSprite):
         self.isMoving = False
         self.pxMoveCount = 0
         self.direction = Direction.NONE
+        self.animation = loadPlayerAnimation(spriteBank)
+        self.animation.setDirection(Direction.DOWN)
+        self.userEnded = False
 
     def update(self):
-        return self.handleInput()
+        self.handleInput()
 
     def handleInput(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return False
+                self.userEnded = True
+                return
 
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_ESCAPE]:
-            return False
+            self.userEnded = True
+            return
 
         self.move()
-        return True
 
     def move(self):
         if self.isMoving and self.direction is not Direction.NONE:
             self.updateMove()
         else:
             keys = pygame.key.get_pressed()
-
+            oldDirection = self.direction
             if keys[pygame.K_LEFT]:
                 self.rect.x -= self.dv
                 self.direction = Direction.LEFT
@@ -51,8 +56,15 @@ class Player(GameSprite):
                 self.rect.y -= self.dv
                 self.direction = Direction.UP
             if self.movingKeysActivated(keys):
+                if self.direction is not oldDirection:
+                    self.animation.setDirection(self.direction)
+                    self.image = self.animation.getCurrentFrame()
                 self.isMoving = True
                 self.pxMoveCount += self.dv
+
+    def updateAnimation(self):
+        self.animation.update()
+        self.image = self.animation.getCurrentFrame()
 
     def movingKeysActivated(self, keys):
         return keys[pygame.K_LEFT] or keys[pygame.K_RIGHT] \
@@ -71,9 +83,9 @@ class Player(GameSprite):
         self.pxMoveCount += self.dv
 
         if self.pxMoveCount >= TILE_SIZE:
+            self.updateAnimation()
             self.endMove()
 
     def endMove(self):
         self.isMoving = False
         self.pxMoveCount = 0
-        self.direction = Direction.NONE
