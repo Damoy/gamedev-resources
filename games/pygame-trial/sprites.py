@@ -15,10 +15,14 @@ class GameSpriteGroup(Group):
 
 
 class GameSprite(Sprite):
-    def __init__(self, image: pygame.image, group: GameSpriteGroup):
+    def __init__(self, image: pygame.image, group: GameSpriteGroup, x=-1, y=-1):
         Sprite.__init__(self, group)
         self.image = image
         self.rect = self.image.get_rect()
+        if x != -1:
+            self.rect.x = x
+        if y != -1:
+            self.rect.y = y
 
 
 class DirectedAnimation:
@@ -103,9 +107,14 @@ def loadSpriteBank(textures: pygame.image):
     grassFlower3.append(subImage(textures, 0, 21, 7, 4))
     grassFlower3.append(subImage(textures, 8, 21, 7, 6))
     grassFlower3.append(subImage(textures, 16, 21, 9, 8))
+    grassFlower4 = []
+    grassFlower4.append(subImage(textures, 258, 83, 12, 12))
+    grassFlower4.append(subImage(textures, 274, 82, 14, 13))
+    grassFlower4.append(subImage(textures, 289, 82, 15, 13))
     grassFlowerTiles.append(grassFlower1)
     grassFlowerTiles.append(grassFlower2)
     grassFlowerTiles.append(grassFlower3)
+    grassFlowerTiles.append(grassFlower4)
     tilesBank['grassFlower'] = grassFlowerTiles
 
     grassBlocks = []

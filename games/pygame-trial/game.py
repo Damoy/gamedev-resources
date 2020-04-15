@@ -11,7 +11,7 @@ class Game:
     def __init__(self):
         os.environ['SDL_VIDEO_CENTERED'] = '1' # to center window
         pygame.init()
-        self.window = Window("Game", 898, 576, 4, flags=0)
+        self.window = Window("Game", 898, 576, 4, flags=0) # [224,144]
         self.screen = self.window.get()
         self.clock = pygame.time.Clock()
         self.isRunning = False
@@ -32,17 +32,14 @@ class Game:
         pygame.quit()
 
     def update(self):
-        # self.allSprites.update()
-        self.player.update()
+        self.allSprites.update()
         if self.player.userEnded:
             self.isRunning = False
 
     def render(self):
         self.screen.fill((255, 255, 255))
         self.map.render()
-        # self.allSprites.clear(self.screen, self.screen)
         self.allSprites.draw(self.screen)
-        # self.screen.blit(self.player.image, )
         self.window.render()
 
 def main():
